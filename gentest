@@ -1,0 +1,32 @@
+#include <bits/stdc++.h>
+using namespace std;
+// Tên chương trình
+const string NAME = "sol";
+// Số test kiểm tra
+const int NTEST = 500;
+const int maxN = 1e6 + 5;
+mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
+int random(int l, int r)
+{
+    return l + rng() % (r - l + 1);
+}
+ 
+int main()
+{
+    srand(time(NULL));
+    for (int iTest = 1; iTest <= NTEST; iTest++)
+    {
+        ofstream inp((NAME + ".inp").c_str());
+        // Code phần sinh test ở đây
+        inp.close();
+        system((NAME + ".exe").c_str());
+        system((NAME + "_brute.exe").c_str());
+        if (system(("fc " + NAME + ".out " + NAME + ".ans").c_str()) != 0)
+        {
+            cout << "Test " << iTest << ": WRONG!\n";
+            return 0;
+        }
+        cout << "Test " << iTest << ": CORRECT!\n";
+    }
+    return 0;
+}
