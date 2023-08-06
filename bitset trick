@@ -1,0 +1,41 @@
+template<int len> void solve(const vector<int> &a)
+{
+    bitset<len> f;
+    f[0] = 1;
+    int sum = 0;
+    for(int v : a) sum += v;
+    for (int v : a) f |= f << v;
+    for(int i=sum/2; i>=0; i--)
+        if(f[i])
+        {
+            res += i * (sum - i);
+            break;
+        }
+ 
+}
+ 
+ 
+void Cal(const vector<int> &vc, int len)
+{
+    if(len <= 2) return solve<2>(vc);
+    if(len <= 4) return solve<4>(vc);
+    if(len <= 8) return solve<8>(vc);
+    if(len <= 16) return solve<16>(vc);
+    if(len <= 32) return solve<32>(vc);
+    if(len <= 64) return solve<64>(vc);
+    if(len <= 128) return solve<128>(vc);
+    if(len <= 256) return solve<256>(vc);
+    if(len <= 512) return solve<512>(vc);
+    if(len <= 1024) return solve<1024>(vc);
+    if(len <= 2048) return solve<2048>(vc);
+    if(len <= 4096) return solve<4096>(vc);
+    if(len <= 9192) return solve<9192>(vc);
+    if(len <= 16384) return solve<16384>(vc);
+    if(len <= 32768) return solve<32768>(vc);
+    if(len <= 65536) return solve<65536>(vc);
+    if(len <= 131072) return solve<131072>(vc);
+    if(len <= 262144) return solve<262144>(vc);
+    if(len <= 524288) return solve<524288>(vc);
+    if(len <= 1048576) return solve<1048576>(vc);
+ 
+}
