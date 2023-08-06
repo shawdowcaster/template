@@ -1,0 +1,128 @@
+struct Line
+{
+    int A, B;
+    Line(int A = 0, int B = 0) : A(A), B(B) {}
+    /// đường thẳng y = Ax + B
+    bool operator < (const Line &y) const
+    {
+        return make_pair(-A, B) < make_pair(-y.A, y.B);
+    }
+    bool operator == (const Line &y) const
+    {
+        return make_pair(A, B) == make_pair(y.A, y.B);
+    }
+    bool operator != (const Line &y) const
+    {
+        return make_pair(A, B) != make_pair(y.A, y.B);
+    }
+};
+ 
+struct DynamicHull
+{
+    set<Line> hull; /// các đường thẳng được giữ lại
+    set<pair<ld, Line>> pos; /// các đường thẳng được giữ lại + giao điểm với thằng đằng trước nó
+    ld intersect(Line x, Line y) /// hoành độ giao điểm 2 đường thẳng
+    {
+        return ((ld)x.B - y.B) / (y.A - x.A);
+    }
+    bool chk(Line x, Line y, Line z) /// hoành độ của giao điểm (x, z) >= (y, z)
+    {
+        return ((ld)x.B - z.B) * (z.A - y.A) >= ((ld)y.B - z.B) * (z.A - x.A); /// nhân cho đỡ sai số :D
+    }
+    void add(Line tar)
+    {
+        if(hull.find(tar) != hull.end()) return;
+        hull.insert(tar);
+        auto it = hull.find(tar); /// con trỏ hướng đến thằng đấy
+        Line u, v;
+        /// ta phải check xem thằng tar có nên bị xóa hay không
+        if(it == hull.begin()) /// nếu nó phang vào thằng đầu tiên luôn
+        {
+            pos.insert({-oo, tar}); /// vì không có thằng nào đằng trước nó nên giao điểm của nó mặc định là -oo
+            it++;
+            if(it != hull.end())
+            {
+                pos.erase({-oo, *it}); /// xóa thằng sau nó :D
+            }
+            it--;
+        }
+        else
+        {
+            auto pre = *--it; /// xét thằng trước sau nó
+            it++;
+            if(pre.A == tar.A)
+            {
+                hull.erase(tar); /// nếu có trùng hệ số góc thì xóa luôn k cần nghĩ vì pre.B < tar.B
+                return;
+            }
+            if(*it != *hull.rbegin())
+            {
+                auto bef = *++it; /// nếu còn thằng sau thì xét tiếp thằng sau
+                it--;
+                if(chk(pre, tar, bef)) /// nếu k thỏa mãn xóa luôn
+                {
+                    hull.erase(tar);
+                    return;
+                }
+                pos.erase({intersect(pre, bef), bef});
+                /// xóa giao điểm thằng trước nó và thằng sau nó ở trước
+            }
+        }
+        /// giờ mình đã chắc chắn thằng tar sẽ không bị xóa
+        /// rồi bây giờ mình sẽ xóa sang mấy thằng lan man :D
+        /// đầu tiên là phía bên trái
+        if(it != hull.begin())
+        {
+            v = *--it;/// v là thằng trước it =))
+            while(it != hull.begin())
+            {
+                u = *--it;/// u là thằng trước v :v
+                if(chk(u, v, tar)) /// nếu nó buộc phải xóa thằng v
+                {
+                    pos.erase({intersect(v, u), v});
+                    hull.erase(v);/// thì xóa luôn
+                    v = u;
+                    it = hull.find(v); /// v lúc này lại xuất phát từ u và chạy tieeps
+                }
+                else
+                {
+                    it++;
+                    break;
+                }
+            }
+            pos.insert({intersect(tar, v), tar});/// cuối cùng chèn thêm giao điểm là xong
+            it++;
+        }
+        /// giờ thì đến đằng sau
+        if(*it != *hull.rbegin())
+        {
+            /// vẫn tương tự
+            u = *(++it);
+            while(*it != *hull.rbegin())
+            {
+                v = *++it;
+                if(tar.A == u.A || chk(tar, u, v))
+                {
+                    pos.erase({intersect(u, v), v});
+                    hull.erase(u);
+                    u = v;
+                    it = hull.find(u);
+                }
+                else
+                {
+                    it--;
+                    break;
+                }
+            }
+            pos.insert({intersect(tar, u), u});
+            it--;
+        }
+    }
+    int get(int x)/// truy vấn thì chặt ?
+    {
+        if(pos.size() == 0) return oo;
+        auto it = pos.upper_bound({x, {-oo, -oo}});
+        it--;
+        return it->second.A * x + it->second.B;
+    }
+};
