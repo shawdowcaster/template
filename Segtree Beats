@@ -1,0 +1,266 @@
+#include<bits/stdc++.h>
+
+#define int long long
+#define pb push_back
+#define fi first
+#define se second
+using namespace std;
+using ll = long long;
+using ld = long double;
+using ull = unsigned long long;
+mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
+const int maxN = 2e5 + 5;
+const int mod = 1e9 + 7;
+const ll oo = 1e18;
+int n, q, a[maxN];
+struct SegtreeBeats
+{
+    int _min[4 * maxN], _semin[4 * maxN];
+    int _max[4 * maxN], _semax[4 * maxN];
+    int cntmin[4 * maxN], cntmax[4 * maxN];
+    int st[4 * maxN], lazy[4 * maxN];
+    void reset()
+    {
+        memset(st, 0, sizeof st);
+        memset(lazy, 0, sizeof lazy);
+        memset(_min, 0, sizeof _min);
+        memset(_max, 0, sizeof _max);
+        memset(_semin, 0, sizeof _semin);
+        memset(_semax, 0, sizeof _semax);
+        memset(cntmin, 0, sizeof cntmin);
+        memset(cntmax, 0, sizeof cntmax);
+    }
+    void combine(int id)
+    {
+        _max[id] = max(_max[id * 2], _max[id * 2 + 1]);
+        int tmp = max(_semax[id * 2], _semax[id * 2 + 1]);
+        if(_max[id * 2] > _max[id * 2 + 1])
+        {
+            _semax[id] = max(tmp, _max[id * 2 + 1]);
+            cntmax[id] = cntmax[id * 2];
+        }
+        else if(_max[id * 2] < _max[id * 2 + 1])
+        {
+            _semax[id] = max(tmp, _max[id * 2]);
+            cntmax[id] = cntmax[id * 2 + 1];
+        }
+        else
+        {
+            _semax[id] = tmp;
+            cntmax[id] = cntmax[id * 2] + cntmax[id * 2 + 1];
+        }
+
+        _min[id] = min(_min[id * 2], _min[id * 2 + 1]);
+        tmp = min(_semin[id * 2], _semin[id * 2 + 1]);
+        if(_min[id * 2] < _min[id * 2 + 1])
+        {
+            _semin[id] = min(tmp, _min[id * 2 + 1]);
+            cntmin[id] = cntmin[id * 2];
+        }
+        else if(_min[id * 2] > _min[id * 2 + 1])
+        {
+            _semin[id] = min(tmp, _min[id * 2]);
+            cntmin[id] = cntmin[id * 2 + 1];
+        }
+        else
+        {
+            _semin[id] = tmp;
+            cntmin[id] = cntmin[id * 2] + cntmin[id * 2 + 1];
+        }
+        st[id] = st[id * 2] + st[id * 2 + 1];
+    }
+    void down(int id, int l, int r)
+    {
+        int t = lazy[id];
+        lazy[id] = 0;
+        int mid = (l + r) / 2;
+        st[id * 2] += t * (mid - l + 1);
+        st[id * 2 + 1] += t * (r - mid);
+        lazy[id * 2] += t;
+        lazy[id * 2 + 1] += t;
+        _max[id * 2] += t;
+        _max[id * 2 + 1] += t;
+        _min[id * 2] += t;
+        _min[id * 2 + 1] += t;
+        if(_semax[id * 2] != -oo) _semax[id * 2] += t;
+        if(_semax[id * 2 + 1] != -oo) _semax[id * 2 + 1] += t;
+        if(_semin[id * 2] != oo) _semin[id * 2] += t;
+        if(_semin[id * 2 + 1] != oo) _semin[id * 2 + 1] += t;
+
+        int val = _max[id];
+        if(_max[id * 2] > val)
+        {
+            st[id * 2] -= cntmax[id * 2] * (_max[id * 2] - val);
+            _max[id * 2] = val;
+            if(l == mid) _min[id * 2] = val;
+            else
+            {
+                if(_min[id * 2] > val) _min[id * 2] = val;
+                else if(_semin[id * 2] > val) _semin[id * 2] = val;
+            }
+        }
+        if(_max[id * 2 + 1] > val)
+        {
+            st[id * 2 + 1] -= cntmax[id * 2 + 1] * (_max[id * 2 + 1] - val);
+            _max[id * 2 + 1] = val;
+            if(mid + 1 == r) _min[id * 2 + 1] = val;
+            else
+            {
+                if(_min[id * 2 + 1] > val) _min[id * 2 + 1] = val;
+                else if(_semin[id * 2 + 1] > val) _semin[id * 2 + 1] = val;
+            }
+        }
+
+        val = _min[id];
+        if(_min[id * 2] < val)
+        {
+            st[id * 2] += cntmin[id * 2] * (val - _min[id * 2]);
+            _min[id * 2] = val;
+            if(l == mid) _max[id * 2] = val;
+            else
+            {
+                if(_max[id * 2] < val) _max[id * 2] = val;
+                else if(_semax[id * 2] < val) _semax[id * 2] = val;
+            }
+        }
+        if(_min[id * 2 + 1] < val)
+        {
+            st[id * 2 + 1] += cntmin[id * 2 + 1] * (val - _min[id * 2 + 1]);
+            _min[id * 2 + 1] = val;
+            if(mid + 1 == r) _max[id * 2 + 1] = val;
+            else
+            {
+                if(_max[id * 2 + 1] < val) _max[id * 2 + 1] = val;
+                else if(_semax[id * 2 + 1] < val) _semax[id * 2 + 1] = val;
+            }
+        }
+    }
+    void build(int id, int l, int r)
+    {
+        if(l == r)
+        {
+            _max[id] = _min[id] = st[id] = a[l];
+            _semax[id] = -oo;
+            _semin[id] = oo;
+            cntmax[id] = cntmin[id] = 1;
+            return;
+        }
+        int mid = (l + r) / 2;
+        build(id * 2, l, mid);
+        build(id * 2 + 1, mid + 1, r);
+        combine(id);
+    }
+    void upd_chmax(int id, int l, int r, int u, int v, int val) // a[i] = max(a[i], val)
+    {
+        if(l > v || r < u || _min[id] >= val) return;
+        if(l >= u && r <= v && _semin[id] > val)
+        {
+            st[id] += cntmin[id] * (val - _min[id]);
+            _min[id] = val;
+            if(l == r) _max[id] = val;
+            else
+            {
+                if(_max[id] < val) _max[id] = val;
+                else if(_semax[id] < val) _semax[id] = val;
+            }
+            return;
+        }
+        down(id, l, r);
+        int mid = (l + r) / 2;
+        upd_chmax(id * 2, l, mid, u, v, val);
+        upd_chmax(id * 2 + 1, mid + 1, r, u, v, val);
+        combine(id);
+    }
+    void upd_chmin(int id, int l, int r, int u, int v, int val) // a[i] = min(a[i], val)
+    {
+        if(l > v || r < u || _max[id] <= val) return;
+        if(l >= u && r <= v && _semax[id] < val)
+        {
+            st[id] -= cntmax[id] * (_max[id] - val);
+            _max[id] = val;
+            if(l == r) _min[id] = val;
+            else
+            {
+                if(_min[id] > val) _min[id] = val;
+                else if(_semin[id] > val) _semin[id] = val;
+            }
+            return;
+        }
+        down(id, l, r);
+        int mid = (l + r) / 2;
+        upd_chmin(id * 2, l, mid, u, v, val);
+        upd_chmin(id * 2 + 1, mid + 1, r, u, v, val);
+        combine(id);
+    }
+    void upd_sum(int id, int l, int r, int u, int v, int val)
+    {
+        if(l > v || r < u) return;
+        if(l >= u && r <= v)
+        {
+            st[id] += (r - l + 1) * val;
+            lazy[id] += val;
+            _max[id] += val;
+            _min[id] += val;
+            if(_semax[id] != -oo) _semax[id] += val;
+            if(_semin[id] != oo) _semin[id] += val;
+            return;
+        }
+        int mid = (l + r) / 2;
+        down(id, l, r);
+        upd_sum(id * 2, l, mid, u, v, val);
+        upd_sum(id * 2 + 1, mid + 1, r, u, v, val);
+        combine(id);
+    }
+    int get(int id, int l, int r, int u, int v)
+    {
+        if(l > v || r < u) return 0;
+        if(l >= u && r <= v) return st[id];
+        int mid = (l + r) / 2;
+        down(id, l, r);
+        return get(id * 2, l, mid, u, v) + get(id * 2 + 1, mid + 1, r, u, v);
+    }
+};
+void ReadInput()
+{
+    cin >> n >> q;
+    for(int i=1; i<=n; i++) cin >> a[i];
+}
+void Solve()
+{
+    SegtreeBeats beats;
+    beats.reset();
+    beats.build(1, 1, n);
+    while(q--)
+    {
+        int type, l, r;
+        cin >> type >> l >> r;
+        l++;
+        if(!type)
+        {
+            int val;
+            cin >> val;
+            beats.upd_chmin(1, 1, n, l, r, val);
+        }
+        else if(type == 1)
+        {
+            int val;
+            cin >> val;
+            beats.upd_chmax(1, 1, n, l, r, val);
+        }
+        else if(type == 2)
+        {
+            int val;
+            cin >> val;
+            beats.upd_sum(1, 1, n, l, r, val);
+        }
+        else cout << beats.get(1, 1, n, l, r) << '\n';
+    }
+}
+int32_t main()
+{
+   // freopen("x.inp", "r", stdin);
+    ios_base::sync_with_stdio(false);
+    cin.tie(nullptr);
+    ReadInput();
+    Solve();
+}
