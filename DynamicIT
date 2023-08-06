@@ -1,0 +1,70 @@
+struct DynamicIT
+{
+    struct TNode
+    {
+        int val;
+        int left, right, lazy;
+    };
+    vector<TNode> tree;
+    void new_node()
+    {
+        TNode tmp;
+        tmp.val = 0;
+        tmp.left = tmp.right = -1;
+        tmp.lazy = 0;
+        tree.pb(tmp);
+    }
+    inline void down(int id)
+    {
+        int t = tree[id].lazy;
+        tree[id].lazy = 0;
+        int L = tree[id].left, R = tree[id].right;
+        tree[L].val += t;
+        tree[L].lazy += t;
+        tree[R].val += t;
+        tree[R].lazy += t;
+    }
+    void update(int id, int l, int r, int u, int v, int val)
+    {
+        if(l > v || r < u) return;
+        if(l >= u && r <= v)
+        {
+            tree[id].val += val;
+            tree[id].lazy += val;
+            return;
+        }
+        int mid = (l + r) / 2;
+        if(tree[id].left == -1)
+        {
+            new_node();
+            tree[id].left = tree.size() - 1;
+        }
+        if(tree[id].right == -1)
+        {
+            new_node();
+            tree[id].right = tree.size() - 1;
+        }
+        down(id);
+        update(tree[id].left, l, mid, u, v, val);
+        update(tree[id].right, mid + 1, r, u, v, val);
+        tree[id].val = tree[tree[id].left].val + tree[tree[id].right].val;
+    }
+    int get(int id, int l, int r, int u, int v)
+    {
+        if(l > v || r < u) return 0;
+        if(l >= u && r <= v) return tree[id].val;
+        if(tree[id].left == -1)
+        {
+            new_node();
+            tree[id].left = tree.size() - 1;
+        }
+        if(tree[id].right == -1)
+        {
+            new_node();
+            tree[id].right = tree.size() - 1;
+        }
+        down(id);
+        int mid = (l + r) / 2;
+        return get(tree[id].left, l, mid, u, v) + get(tree[id].right, mid + 1, r, u, v);
+    }
+};
