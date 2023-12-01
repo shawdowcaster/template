@@ -30,16 +30,16 @@ struct two_sat
         adj[rev(a)].pb(b);
         adj[rev(b)].pb(a);
     }
-    void add_or(int a, int b)
+    void add_or(int a, int b) // at least 1 of them true
     {
         add_edge(a, b);
     }
-    void add_xor(int a, int b)
+    void add_xor(int a, int b) // only one of them true
     {
         add_or(a, b);
         add_or(rev(a), rev(b));
     }
-    void add_and(int a, int b)
+    void add_and(int a, int b) // they must be the same
     {
         add_xor(a, rev(b));
     }
