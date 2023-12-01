@@ -5,7 +5,7 @@ struct two_sat
     vector<int> adj[N];
     int vis[N];
     int low[N], num[N], Time = 0;
-    int node[maxN], nNode = 0;
+    int node[N], nNode = 0;
     vector<int> S;
     void init(int _n)
     {
