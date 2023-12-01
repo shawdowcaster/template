@@ -11,7 +11,7 @@ struct two_sat
     {
         n = _n;
         Time = nNode = 0;
-        for(int i=0; i<N; i++)
+        for(int i=0; i<=n*2; i++)
         {
             vis[i] = 0;
             low[i] = num[i] = 0;
