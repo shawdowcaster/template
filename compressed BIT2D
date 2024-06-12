@@ -1,0 +1,49 @@
+struct CompressedBIT2D
+{
+    vector<vector<int>> bit, vals;
+    CompressedBIT2D(int n)
+    {
+        bit.assign(n + 5, {});
+        vals.assign(n + 5, {});
+    }
+    void normalize()
+    {
+        for(int i = 1; i < bit.size(); ++i)
+        {
+            sort(vals[i].begin(), vals[i].end());
+            vals[i].erase(unique(vals[i].begin(), vals[i].end()), vals[i].end());
+            bit[i].resize(vals[i].size() + 1, INT_MIN);
+        }
+    }
+    void fakeUpdate(int x, int y)
+    {
+        for(; x < (int)bit.size(); x += x & -x)
+        {
+            vals[x].push_back(y);
+        }
+    }
+    void update(int x, int y, int num)
+    {
+        for(; x < (int)bit.size(); x += x & -x)
+        {
+            int i = upper_bound(vals[x].begin(), vals[x].end(), y) - vals[x].begin();
+            for(; i < (int)bit[x].size(); i += i & -i)
+            {
+                bit[x][i] = max(bit[x][i], num);
+            }
+        }
+    }
+    int getmax(int x, int y)
+    {
+        int res = INT_MIN;
+        for(; x; x -= x & -x)
+        {
+            int i = upper_bound(vals[x].begin(), vals[x].end(), y) - vals[x].begin();
+            for(; i; i -= i & -i)
+            {
+                res = max(res, bit[x][i]);
+            }
+        }
+        return res;
+    }
+};
