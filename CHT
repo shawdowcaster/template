@@ -1,0 +1,39 @@
+struct CHT
+{
+    vector<ld> vc;
+    vector<pair<int, int>> line;
+    ld intersect(pair<int, int> p, pair<int, int> q)
+    {
+        return (ld)(q.se - p.se) / (p.fi - q.fi);
+    }
+    void add(pair<int, int> x)
+    {
+        while(vc.size() > 1 || (vc.size() == 1 && line.back().fi == x.fi))
+        {
+            if(x.fi == line.back().fi)
+            {
+                if(x.se > line.back().se)
+                {
+                    line.pop_back();
+                    vc.pop_back();
+                    continue;
+                }
+                else return;
+            }
+            if(intersect(x, line[line.size() - 2]) >= intersect(x, line.back()))
+            {
+                line.pop_back();
+                vc.pop_back();
+            }
+            else break;
+        }
+        if(vc.empty()) vc.pb(-oo);
+        else vc.pb(intersect(x, line.back()));
+        line.pb(x);
+    }
+    int get(ld x)
+    {
+        int i = upper_bound(vc.begin(), vc.end(), x) - vc.begin() - 1;
+        return line[i].fi * x + line[i].se;
+    }
+};
