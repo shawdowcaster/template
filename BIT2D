@@ -1,0 +1,39 @@
+struct BIT2D
+{
+    int n, m;
+    vector<vector<int>> bit;
+    void init(int _n, int _m)
+    {
+        n = _n;
+        m = _m;
+        bit.resize(n + 5, vector<int> (m + 5));
+    }
+    void update(int x, int y, int val)
+    {
+        while(x <= n)
+        {
+            int pos = y;
+            while(pos <= m)
+            {
+                bit[x][pos] += val;
+                pos += (pos & (-pos));
+            }
+            x += (x & (-x));
+        }
+    }
+    int get(int x, int y)
+    {
+        int res = 0;
+        while(x)
+        {
+            int pos = y;
+            while(pos)
+            {
+                res += bit[x][pos];
+                pos -= (pos & (-pos));
+            }
+            x -= (x & (-x));
+        }
+        return res;
+    }
+};
