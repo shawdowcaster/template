@@ -1,0 +1,67 @@
+struct LazySegtree
+{
+    vector<int> st, lazy;
+    void init(int n)
+    {
+        st.resize(4 * n + 5, 0);
+        lazy.resize(4 * n + 5, 0);
+    }
+    void down(int id)
+    {
+        int t = lazy[id];
+        st[id * 2] += t;
+        st[id * 2 + 1] += t;
+        lazy[id * 2] += t;
+        lazy[id * 2 + 1] += t;
+        lazy[id] = 0;
+    }
+    void build(int id, int l, int r)
+    {
+        if(l == r)
+        {
+            //st[id] = ;
+            return;
+        }
+        int mid = (l + r) / 2;
+        build(id * 2, l, mid);
+        build(id * 2 + 1, mid + 1, r);
+        st[id] = min(st[id * 2], st[id * 2 + 1]);
+    }
+    void update(int id, int l, int r, int pos, int val)
+    {
+        if(l > pos || r < pos) return;
+        if(l == r && l == pos)
+        {
+            st[id] = val;
+            return;
+        }
+        down(id);
+        int mid = (l + r) / 2;
+        update(id * 2, l, mid, pos, val);
+        update(id * 2 + 1, mid + 1, r, pos, val);
+        st[id] = max(st[id * 2], st[id * 2 + 1]);
+    }
+    void range_upd(int id, int l, int r, int u, int v, int val)
+    {
+        if(l > v || r < u) return;
+        if(l >= u && r <= v)
+        {
+            st[id] += val;
+            lazy[id] += val;
+            return;
+        }
+        int mid = (l + r) / 2;
+        down(id);
+        range_upd(id * 2, l, mid, u, v, val);
+        range_upd(id * 2 + 1, mid + 1, r, u, v, val);
+        st[id] = max(st[id * 2], st[id * 2 + 1]);
+    }
+    int get(int id, int l, int r, int u, int v)
+    {
+        if(l > v || r < u) return 0;
+        if(l >= u && r <= v) return st[id];
+        int mid = (l + r) / 2;
+        down(id);
+        return max(get(id * 2, l, mid, u, v), get(id * 2 + 1, mid + 1, r, u, v));
+    }
+};
