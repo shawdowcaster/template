@@ -1,92 +1,45 @@
-#include<bits/stdc++.h>
-
-#define int long long
-#define pb push_back
-#define fi first
-#define se second
-using namespace std;
-using ll = long long;
-using ld = long double;
-using ull = unsigned long long;
-mt19937 rnd(chrono::steady_clock::now().time_since_epoch().count());
-const int maxN = 2000 + 5;
-const int mod = 1e9 + 7;
-const ll oo = 1e18;
-int n, m;
-int a[maxN][maxN];
-int st[4 * maxN][4 * maxN];
-void ReadInput()
+struct Segtree2D
 {
-    n = 50;
-    m = 55;
-    for(int i=1; i<=n; i++)
-        for(int j=1; j<=m; j++)
-            a[i][j] = rnd();
-}
-void build_y(int idx, int lx, int rx, int idy, int ly, int ry)
-{
-    if(ly == ry)
+    vector<vector<int>> st;
+    void init(int n, int m)
     {
-        if(lx == rx) st[idx][idy] = a[lx][ly];
-        else st[idx][idy] = st[idx * 2][idy] + st[idx * 2 + 1][idy];
-        return;
+        st.resize(4 * n + 5, vector<int> (4 * m + 5, 0));
     }
-    int mid = (ly + ry) / 2;
-    build_y(idx, lx, rx, idy * 2, ly, mid);
-    build_y(idx, lx, rx, idy * 2 + 1, mid + 1, ry);
-    st[idx][idy] = st[idx][idy * 2] + st[idx][idy * 2 + 1];
-}
-void build_x(int id, int l, int r)
-{
-    if(l != r)
+    void build_y(int idx, int lx, int rx, int idy, int ly, int ry)
     {
+        if(ly == ry)
+        {
+            if(lx == rx) st[idx][idy] = a[lx][ly];
+            else st[idx][idy] = st[idx * 2][idy] + st[idx * 2 + 1][idy];
+            return;
+        }
+        int mid = (ly + ry) / 2;
+        build_y(idx, lx, rx, idy * 2, ly, mid);
+        build_y(idx, lx, rx, idy * 2 + 1, mid + 1, ry);
+        st[idx][idy] = st[idx][idy * 2] + st[idx][idy * 2 + 1];
+    }
+    void build(int id, int l, int r)
+    {
+        if(l != r)
+        {
+            int mid = (l + r) / 2;
+            build(id * 2, l, mid);
+            build(id * 2 + 1, mid + 1, r);
+        }
+        build_y(id, l, r, 1, 1, m);
+    }
+    int get_y(int idx, int idy, int l, int r, int u, int v)
+    {
+        if(l > v || r < u) return 0;
+        if(l >= u && r <= v) return st[idx][idy];
         int mid = (l + r) / 2;
-        build_x(id * 2, l, mid);
-        build_x(id * 2 + 1, mid + 1, r);
+        return get_y(idx, idy * 2, l, mid, u, v) + get_y(idx, idy * 2 + 1, mid + 1, r, u, v);
     }
-    build_y(id, l, r, 1, 1, m);
-}
-int get_y(int idx, int idy, int l, int r, int u, int v)
-{
-    if(l > v || r < u) return 0;
-    if(l >= u && r <= v) return st[idx][idy];
-    int mid = (l + r) / 2;
-    return get_y(idx, idy * 2, l, mid, u, v) + get_y(idx, idy * 2 + 1, mid + 1, r, u, v);
-}
-int get_x(int idx, int lx, int rx, int u, int v, int ly, int ry)
-{
-    if(lx > v || rx < u) return 0;
-    if(lx >= u && rx <= v) return get_y(idx, 1, 1, m, ly, ry);
-    int mid = (lx + rx) / 2;
-    return get_x(idx * 2, lx, mid, u, v, ly, ry) + get_x(idx * 2 + 1, mid + 1, rx, u, v, ly, ry);
-}
-bool checker(int x, int y, int u, int v)
-{
-    int val = get_x(1, 1, n, x, u, y, v);
-    int res = 0;
-    for(int i=x; i<=u; i++)
-        for(int j=y; j<=v; j++)
-            res += a[i][j];
-    return res == val;
-}
-void Solve()
-{
-    build_x(1, 1, n);
-    for(int i=1; i<=n; i++)
-        for(int j=1; j<=n; j++)
-            for(int x=i; x<=n; x++)
-                for(int y=j; y<=n; y++)
-                    if(!checker(i, j, x, y))
-                    {
-                        cout << "WA";
-                        return;
-                    }
-    cout << "AC";
-}
-int32_t main()
-{
-    ios_base::sync_with_stdio(false);
-    cin.tie(nullptr);
-    ReadInput();
-    Solve();
-}
+    int get_sum(int idx, int lx, int rx, int u, int v, int ly, int ry)
+    {
+        if(lx > v || rx < u) return 0;
+        if(lx >= u && rx <= v) return get_y(idx, 1, 1, m, ly, ry);
+        int mid = (lx + rx) / 2;
+        return get_sum(idx * 2, lx, mid, u, v, ly, ry) + get_sum(idx * 2 + 1, mid + 1, rx, u, v, ly, ry);
+    }
+};
