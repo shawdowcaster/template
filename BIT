@@ -1,0 +1,22 @@
+struct BIT
+{
+    vector<int> bit;
+    int n;
+    void init(int _n)
+    {
+        n = _n;
+        bit.resize(n + 5, 0);
+    }
+    void update(int pos, int val)
+    {
+        for(; pos <= n; pos += (pos & (-pos)))
+            bit[pos] += val;
+    }
+    int get(int pos)
+    {
+        int res = 0;
+        for(; pos; pos -= (pos & (-pos)))
+            res += bit[pos];
+        return res;
+    }
+};
